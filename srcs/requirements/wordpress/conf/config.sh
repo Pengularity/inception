@@ -34,4 +34,4 @@ wp user create $WP_USER $WP_USER_MAIL \
 
 cd -
 
-php-fpm8.0 -F
+php-fpm7.3 -F

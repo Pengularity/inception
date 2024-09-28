@@ -3,22 +3,25 @@
 FROM debian:buster
 
 RUN apt-get update && apt-get install -y \
-	php8.0-fpm \
-	php8.0-mysql \
+	php7.3 php-fpm \
+	php7.3-mysql \
 	mariadb-client \
 	curl && \
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists/*
 
-COPY ./conf/www.conf /etc/php/8.0/fpm/pool.d
+COPY ./conf/www.conf /etc/php/7.3/fpm/pool.d
 
 EXPOSE 9000
 
-RUN curl -o /var/www/latest.tar.gz https://wordpress.org/latest.tar.gz && \
-	cd /var/www && tar -xvf latest.tar.gz && \
-	rm -rf latest.tar.gz
+RUN mkdir -p /var/www && \
+    chown -R www-data:www-data /var/www && \
+    curl -o /var/www/latest.tar.gz https://wordpress.org/latest.tar.gz && \
+    cd /var/www && \
+    tar -xvf latest.tar.gz && \
+    rm -rf latest.tar.gz
 
-RUN curl -o /usr/bin/wp https://raw.githubusercontant.com/wp-cli/builds/gh-pages/phar/wp-cli.phar --silent && \
+RUN curl -o /usr/bin/wp https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar --silent && \
 	chmod +x /usr/bin/wp
 
 RUN mkdir /run/php
