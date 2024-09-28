@@ -1,0 +1,74 @@
+services:
+  mariadb:
+    container_name: mariadb
+    build: ./requirements/mariadb
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - inception-network
+    restart: always
+
+  wordpress:
+    container_name: wordpress
+    build: ./requirements/wordpress
+    environment:
+     WORDPRESS_DB_HOST: mariadb:3306
+     WORDPRESS_DB_NAME: ${DB_NAME}
+     WORDPRESS_DB_USER: ${DB_USER}
+     WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - wordpress_data:/var/www/html
+    networks:
+      - inception-network
+    depends_on:
+      - mariadb
+    restart: always
+    
+  nginx:
+    container_name: nginx
+    build: ./requirements/nginx
+    ports:
+      - "443:443"
+    volumes:
+      - wordpress_data:/var/www/html
+    networks:
+      - inception-network
+    depends_on:
+      - wordpress
+    restart: always
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    ports:
+      - "8000:8000"
+      - "9443:9443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    security_opt:
+      - no-new-privileges:true
+    restart: always
+
+  adminer:
+    image: adminer:4
+    container_name: adminer
+    restart: unless-stopped
+    networks:
+      - inception-network
+    depends_on:
+      - mariadb
+    ports:
+      - "8080:8080"
+
+volumes:
+    mariadb_data:
+    wordpress_data:
+
+networks:
+    inception-network:
+        driver: bridge
